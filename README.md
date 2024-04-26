@@ -40,13 +40,13 @@ Para compilar y ejecutar el programa desde Eclipse:
 
 1. Ubicarse en la Carpeta de Compilación de Eclipse:  
    Use `cd` para ir a la carpeta donde Eclipse guarda los archivos compilados:  
-   cd C:\Usuarios\jorge\carpeta1\carpeta2\...\CompoundProblemSolver\bin
+   cd C:\Usuarios\juan\carpeta1\carpeta2\...\CompoundProblemSolver\bin
 
 2. Ejecutar el Programa con el Compilador de Eclipse:  
    Ejecute el programa, indicando dónde están los archivos compilados:  
-   java -cp "C:\Usuarios\jorge\carpeta1\carpeta2\...\CompoundProblemSolver\bin" CompoundProblemSolver
+   java -cp "C:\Usuarios\juan\carpeta1\carpeta2\...\CompoundProblemSolver\bin" CompoundProblemSolver
 
 3. Redirección desde y hacia Archivos:  
    Para redirigir la entrada y salida estándar desde cualquier directorio:  
    java -cp "C:\Usuarios\jorge\carpeta3\carpeta4\...\entrada.in" CompoundProblemSolver  
-   > C:\Usuarios\jorge\carpeta10\carpeta11\...\salida.out
+   > C:\Usuarios\juan\carpeta10\carpeta11\...\salida.out
