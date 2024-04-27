@@ -23,8 +23,8 @@ Para pruebas más grandes, puede redirigir la entrada y salida estándar usando 
 
 1. Entrada desde Archivo:  
    Use `<` para redirigir la entrada estándar desde un archivo:  
-   java -cp ProblemaP2 < P2.in
-
-2. Salida hacia Archivo:  
+   java ProblemaP2.java < P2.in
+   
+3. Salida hacia Archivo:  
    Use `>` para redirigir la salida estándar hacia un archivo:  
-   java -cp ProblemaP2 > p2.out
+   java ProblemaP2.java > p2.out
