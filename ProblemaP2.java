@@ -5,14 +5,12 @@ import java.util.*;
 
 public class ProblemaP2 { 
     /* -------------------- METODOS PARA RESOLVER EL PROBLEMA ----------------------------------- */
-    public static List<String> solveCompoundProblem(List<TestCase> testCases) {
-        List<String> results = new ArrayList<>();
+    public static String solveCompoundProblem(TestCase testCase) {
 
-        for (TestCase caseData : testCases) {
-            int n = caseData.n;
-            int w1 = caseData.w1;
-            int w2 = caseData.w2;
-            List<Element> elements = caseData.elements;
+            int n = testCase.n;
+            int w1 = testCase.w1;
+            int w2 = testCase.w2;
+            List<Element> elements = testCase.elements;
 
             Graph graph = new Graph();
             graph.buildGraph(elements, w1, w2);
@@ -39,19 +37,18 @@ public class ProblemaP2 {
                 }
             }
 
+            String retorno = "NO SE PUEDE";
+
             if (canConnectAll && usedElements.size() == n) {
                 StringBuilder result = new StringBuilder();
                 for (Element el : elements) {
                     result.append(el.toString()).append(",");
                 }
                 result.append(" ").append(minTotalCost);
-                results.add(result.toString());
-            } else {
-                results.add("NO SE PUEDE");
-            }
-        }
-
-        return results;
+                retorno = result.toString();
+            } 
+    
+        return retorno;
     }
 
     public static void main(String[] args) throws IOException {
@@ -62,17 +59,15 @@ public class ProblemaP2 {
     public void solveProblems() throws IOException {
 
         int totalCases = 0;
-        List<ProblemaP2.TestCase> testCases = new ArrayList<>();
 
         try (InputStreamReader is=new InputStreamReader(System.in);
 				BufferedReader br = new BufferedReader(is);) {
 			String line = br.readLine();
 			totalCases = Integer.parseInt(line);
-			line = br.readLine();
-            int cases = 0;
-			for(;line!=null  && line.length()>0 && !"0".equals(line) && cases < totalCases;cases++) {
+			for(int cases = 0;line!=null  && line.length()>0 && !"0".equals(line) && cases < totalCases;cases++) {
 				int w1, w2;
 				try {
+                    line = br.readLine();
                     //Primer parte del caso
 					String [] dataStr = line.split(" ");
 					int n = Integer.parseInt(dataStr[0]);
@@ -89,20 +84,12 @@ public class ProblemaP2 {
                         elements.add(new ProblemaP2.Element(atom1, atom2));
                     }
 
-                    // Agregar caso de prueba a la lista
-                    testCases.add(new ProblemaP2.TestCase(n, w1, w2, elements));
+                    // Agregar caso de prueba para redsolver
+                    String result = ProblemaP2.solveCompoundProblem(new ProblemaP2.TestCase(n, w1, w2, elements));
+                    System.out.println(result);
 				}  catch (NumberFormatException e) {
 					throw new IOException("Error parsing case: "+(cases+1), e);
 				}
-            }
-        
-            // Resolver los casos de prueba
-            List<String> results = ProblemaP2.solveCompoundProblem(testCases);
-
-            // Imprimir resultados al archivo redirigido
-            for (String result : results) {
-                System.out.println(result);
-                line = br.readLine();
             }
         }
         }
