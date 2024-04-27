@@ -11,7 +11,7 @@ Para compilar y ejecutar este programa, siga estas instrucciones:
 
 2. Ubicarse en la Carpeta del Proyecto:  
    Use el comando `cd` para ir a la carpeta donde se encuentra el proyecto:  
-   cd C:\Usuarios\jorge\carpeta1\carpeta2\...\CompoundProblemSolver
+   cd C:\Usuarios\juan\carpeta1\carpeta2\...\CompoundProblemSolver
 
 3. Compilar el Código Java:  
    Cree una carpeta para los archivos compilados y use `javac` para compilar el código fuente:  
