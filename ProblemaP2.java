@@ -1,3 +1,6 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
 
 public class ProblemaP2 { 
@@ -66,9 +69,8 @@ public class ProblemaP2 {
 			String line = br.readLine();
 			totalCases = Integer.parseInt(line);
 			line = br.readLine();
+            int cases = 0;
 			for(;line!=null  && line.length()>0 && !"0".equals(line) && cases < totalCases;cases++) {
-				int [] utilities;
-				int [] weights;
 				int w1, w2;
 				try {
                     //Primer parte del caso
@@ -93,7 +95,7 @@ public class ProblemaP2 {
 					throw new IOException("Error parsing case: "+(cases+1), e);
 				}
             }
-        }
+        
             // Resolver los casos de prueba
             List<String> results = ProblemaP2.solveCompoundProblem(testCases);
 
@@ -102,6 +104,7 @@ public class ProblemaP2 {
                 System.out.println(result);
                 line = br.readLine();
             }
+        }
         }
 
     /* ------------------ CLASES PARA REPRESENTAR OBJETOS DEL PROBLEMA ------------------------ */
