@@ -13,14 +13,9 @@ Para compilar y ejecutar este programa, siga estas instrucciones:
    Use el comando `cd` para ir a la carpeta donde se encuentra el proyecto:  
    cd C:\Usuarios\juan\carpeta1\carpeta2\...\CompoundProblemSolver
 
-3. Compilar el Código Java:  
-   Cree una carpeta para los archivos compilados y use `javac` para compilar el código fuente:  
-   mkdir classes  
-   javac -d classes src/*.java
-
-4. Ejecutar el Programa:  
+3. Ejecutar el Programa:  
    Ejecute el programa, indicando la carpeta de las clases compiladas:  
-   java -cp classes CompoundProblemSolver
+   java -cp ProblemaP2
 
 Redirección de Entrada/Salida
 
@@ -28,25 +23,8 @@ Para pruebas más grandes, puede redirigir la entrada y salida estándar usando 
 
 1. Entrada desde Archivo:  
    Use `<` para redirigir la entrada estándar desde un archivo:  
-   java -cp classes CompoundProblemSolver < data\CompoundProblemSolver.in
+   java -cp ProblemaP2 < P2.in
 
 2. Salida hacia Archivo:  
    Use `>` para redirigir la salida estándar hacia un archivo:  
-   java -cp classes CompoundProblemSolver > data\CompoundProblemSolver.out
-
-## Eclipse IDE
-
-Para compilar y ejecutar el programa desde Eclipse:
-
-1. Ubicarse en la Carpeta de Compilación de Eclipse:  
-   Use `cd` para ir a la carpeta donde Eclipse guarda los archivos compilados:  
-   cd C:\Usuarios\juan\carpeta1\carpeta2\...\CompoundProblemSolver\bin
-
-2. Ejecutar el Programa con el Compilador de Eclipse:  
-   Ejecute el programa, indicando dónde están los archivos compilados:  
-   java -cp "C:\Usuarios\juan\carpeta1\carpeta2\...\CompoundProblemSolver\bin" CompoundProblemSolver
-
-3. Redirección desde y hacia Archivos:  
-   Para redirigir la entrada y salida estándar desde cualquier directorio:  
-   java -cp "C:\Usuarios\jorge\carpeta3\carpeta4\...\entrada.in" CompoundProblemSolver  
-   > C:\Usuarios\juan\carpeta10\carpeta11\...\salida.out
+   java -cp ProblemaP2 > p2.out
