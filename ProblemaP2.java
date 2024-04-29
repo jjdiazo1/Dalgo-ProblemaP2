@@ -5,50 +5,65 @@ import java.util.*;
 
 public class ProblemaP2 { 
     /* -------------------- METODOS PARA RESOLVER EL PROBLEMA ----------------------------------- */
-    public static String solveCompoundProblem(TestCase testCase) {
+    public static List<String> solveCompoundProblem(List<TestCase> testCases) {
 
-            int n = testCase.n;
-            int w1 = testCase.w1;
-            int w2 = testCase.w2;
-            List<Element> elements = testCase.elements;
+        //METODO PRINCIPAL
+        List<String> results = new ArrayList<>();
+
+        for (TestCase caseData : testCases) {
+            int n = caseData.n;
+            int w1 = caseData.w1;
+            int w2 = caseData.w2;
+            List<Element> elements = caseData.elements;
 
             Graph graph = new Graph();
             graph.buildGraph(elements, w1, w2);
-            graph.floydWarshall(elements);
 
             // Determinar si todos los elementos fundamentales pueden conectarse
-            boolean canConnectAll = true;
-            int minTotalCost = 0;
-            Set<Element> usedElements = new HashSet<>();
+            List<Element> usedElements = graph.canConnectAll(elements);
+            
+            //Aca ya nos devuelven los elementos que se pueden conectar en orden (1,2) (2,3) etc.
+            boolean canConnectAll = !usedElements.isEmpty();
 
-            for (int i = 0; i < elements.size() - 1; i++) {
-                Element el1 = elements.get(i);
-                Element el2 = elements.get(i + 1);
-
-                Pair<Element, Element> key = new Pair<>(el1, el2);
-
-                if (graph.distances.get(key) == null || graph.distances.get(key) == Integer.MAX_VALUE) {
-                    canConnectAll = false;
-                    break;
-                } else {
-                    minTotalCost += graph.distances.get(key);
-                    usedElements.add(el1);
-                    usedElements.add(el2);
-                }
-            }
-
-            String retorno = "NO SE PUEDE";
-
+            //FUNCION FINAL
             if (canConnectAll && usedElements.size() == n) {
+
                 StringBuilder result = new StringBuilder();
-                for (Element el : elements) {
-                    result.append(el.toString()).append(",");
-                }
-                result.append(" ").append(minTotalCost);
-                retorno = result.toString();
-            } 
+
+                Map<Pair<Integer, Integer>, List<Integer>> shortestPaths = graph.floydMap(elements);
+
+                int finalCost = 0;
     
-        return retorno;
+                for (int i = 1; i < elements.size(); i+=2){ //TODO problemas con la iteracion, con el mapeo
+
+                    element1 = elements.get(i-1);
+                    result.append(element1.toString()).append(",");
+
+                    element2 = elements.get(i);
+    
+                    atom1 = graph.atomMap.get(element1.atom1);
+                    atom2 = graph.atomMap.get(element2.atom1*-1);
+    
+                    Pair<Integer, Integer> nodes = new Pair<>(atom1, atom2);
+                    //Saco si es (1,2) (2,3) sacaria del 2 al 2.
+
+                    List<Integer> path = shortestPaths.get(nodes);
+                    for (int node : path) {
+                        result.append(graph.reverseMap.get(node)).append(",");
+                    }
+
+                    result.append(element2.toString()).append(",");
+    
+                    finalCost += graph.lpts[atom1][atom2];
+                }
+                result.append(" ").append(finalCost); 
+                results.add(result.toString());
+            } else {
+                results.add("NO SE PUEDE");
+            }
+        }
+
+        return results;
     }
 
     public static void main(String[] args) throws IOException {
@@ -59,16 +74,18 @@ public class ProblemaP2 {
     public void solveProblems() throws IOException {
 
         int totalCases = 0;
+        List<ProblemaP2.TestCase> testCases = new ArrayList<>();
 
         try (InputStreamReader is=new InputStreamReader(System.in);
 				BufferedReader br = new BufferedReader(is);) {
 			String line = br.readLine();
 			totalCases = Integer.parseInt(line);
-			for(int cases = 0;line!=null  && line.length()>0 && !"0".equals(line) && cases < totalCases;cases++) {
+            int cases = 0;
+			for(;line!=null  && line.length()>0 && !"0".equals(line) && cases < totalCases;cases++) {
 				int w1, w2;
 				try {
-                    line = br.readLine();
                     //Primer parte del caso
+                    line = br.readLine();
 					String [] dataStr = line.split(" ");
 					int n = Integer.parseInt(dataStr[0]);
 					w1 = Integer.parseInt(dataStr[1]);
@@ -84,12 +101,20 @@ public class ProblemaP2 {
                         elements.add(new ProblemaP2.Element(atom1, atom2));
                     }
 
-                    // Agregar caso de prueba para redsolver
-                    String result = ProblemaP2.solveCompoundProblem(new ProblemaP2.TestCase(n, w1, w2, elements));
-                    System.out.println(result);
+                    // Agregar caso de prueba a la lista
+                    testCases.add(new ProblemaP2.TestCase(n, w1, w2, elements));
 				}  catch (NumberFormatException e) {
 					throw new IOException("Error parsing case: "+(cases+1), e);
 				}
+            }
+        
+            // Resolver los casos de prueba
+            List<String> results = ProblemaP2.solveCompoundProblem(testCases);
+
+            // Imprimir resultados al archivo redirigido
+            for (String result : results) {
+                System.out.println(result);
+                line = br.readLine();
             }
         }
         }
@@ -127,16 +152,6 @@ public class ProblemaP2 {
         }
     }
 
-    // Clase para almacenar pares de elementos
-    static class Pair<U, V> {
-        public final U first;
-        public final V second;
-
-        public Pair(U first, V second) {
-            this.first = first;
-            this.second = second;
-        }
-
         @Override
         public boolean equals(Object o) {
             if (!(o instanceof Pair)) return false;
@@ -152,14 +167,26 @@ public class ProblemaP2 {
 
      // Clase para representar el grafo y el algoritmo de Floyd-Warshall
      static class Graph {
-        Map<Pair<Element, Element>, Integer> distances;
+
+        Map<Integer, Integer> atomMap;
+        Map<Integer, Integer> reverseMap;
+
+        int[][] lpts; // With indexes representing masses listed in the reverse map.
 
         public Graph() {
-            this.distances = new HashMap<>();
+            this.reverseMap = new HashMap<>();
+            this.atomMap = new HashMap<>();
         }
 
         // Método para calcular el LTP entre dos átomos
         public static int calculateLTP(int m1, boolean c1, int m2, boolean c2, int w1, int w2) {
+
+            if(m1 == m2 && c1 == c2) {
+                return Integer.MAX_VALUE;
+            }
+            if(m1 == m2 && c1 != c2) {
+                return 0;
+            }
             if (c1 == c2) {
                 return 1 + Math.abs(m1 - m2) % w1;
             } else {
@@ -169,53 +196,217 @@ public class ProblemaP2 {
 
         // Construcción del grafo
         public void buildGraph(List<Element> elements, int w1, int w2) {
-            Set<Integer> masses = new HashSet<>();
 
             for (Element el : elements) {
-                masses.add(Math.abs(el.atom1));
-                masses.add(Math.abs(el.atom2));
-            }
+                
+                key = 0;
+                //ANADIR ATOMOS LIBRES POSIBLES
+                if (!(reverseMap.containsKey(el.atom1))) {
+                    reverseMap.put(key, el.atom1);
+                    key++;
+                    if(!(reverseMap.containsKey(Math.abs(el.atom1)))) {
+                        reverseMap.put(key, Math.abs(el.atom1));
+                        key++;
+                    } else {
+                        reverseMap.put(key, el.atom1*-1);
+                        key++;
+                    }
+                }
 
-            // Inicializar distancias con infinito
-            for (int m1 : masses) {
-                for (int m2 : masses) {
-                    if (m1 != m2) {
-                        distances.put(new Pair<>(new Element(m1, m2), new Element(m1, m2)), Integer.MAX_VALUE);
+                if (!(reverseMap.containsKey(el.atom2))){
+                    reverseMap.put(key, el.atom2);
+                    key++;
+                    if(!(reverseMap.containsKey(Math.abs(el.atom2)))) {
+                        reverseMap.put(key, Math.abs(el.atom2));
+                        key++;
+                    } else {
+                        reverseMap.put(key, el.atom2*-1);
+                        key++;
+                    }
+                }
+
+                //ANADIR ATOMOS AL OTRO MAPA
+                int value = 0;
+                if (!(atomMap.containsKey(el.atom1))) {
+                    atomMap.put(el.atom1, value);
+                    value++;
+                    if(!(atomMap.containsKey(Math.abs(el.atom1)))) {
+                        atomMap.put(Math.abs(el.atom1), value);
+                        value++;
+                    } else {
+                        atomMap.put(el.atom1*-1, value);
+                        value++;
+                    }
+                }
+                
+                if (!(atomMap.containsKey(el.atom2))){
+                    atomMap.put(el.atom2, value);
+                    value++;
+                    if(!(atomMap.containsKey(Math.abs(el.atom2)))) {
+                        atomMap.put(Math.abs(el.atom2), value);
+                        value++;
+                    } else {
+                        atomMap.put(el.atom2*-1, value);
+                        value++;
                     }
                 }
             }
 
+            lpts = new int[reverseMap.size()][reverseMap.size()];
+
             // Calcular el costo de conectar elementos
-            for (Element el1 : elements) {
-                for (Element el2 : elements) {
-                    if (el1.atom2 == el2.atom1) { // Ver si pueden conectarse directamente
-                        int cost = calculateLTP(el1.atom2, el1.atom1 > 0, el2.atom2, el2.atom1 > 0, w1, w2);
-                        distances.put(new Pair<>(el1, el2), cost);
-                    }
+            for (int atom1; atom1 < reverseMap.size(); atom1++) {
+                for (int atom2; atom2 < reverseMap.size(); atom2++) {
+                        lpts[atom1][atom2] = calculateLTP(reverseMap.get(atom1), reverseMap.get(atom1) > 0, reverseMap.get(atom2), reverseMap.get(atom2) > 0, w1, w2);  
+                        //TODO: Acortar el ciclo a la mitad porque como es dirigido basta con recorrer en diagonal                  
                 }
             }
         }
 
+        //Implementacion de algoritmo para saber si se puede conectar todos los elementos con eulerian path  
+        //tratando los elementos como un grafo no dirigido, diferente al que ya tenemos arriba que es el grafo de los costos.
+        public List<Element> canConnectAll(List<Element> elements) {
+            Map<Integer, List<Integer>> adj = new HashMap<>();
+            Map<Integer, Integer> degrees = new HashMap<>();
+            
+            // Build adjacency list and degree counts
+            for (Element e : elements) {
+                adj.computeIfAbsent(e.atom1, k -> new ArrayList<>()).add(e.atom2);
+                adj.computeIfAbsent(e.atom2, k -> new ArrayList<>()).add(e.atom1);
+                degrees.put(e.atom1, degrees.getOrDefault(e.atom1, 0) + 1);
+                degrees.put(e.atom2, degrees.getOrDefault(e.atom2, 0) + 1);
+            }
+    
+            // Check if graph is connected
+            if (!isConnected(adj)) {
+                return Collections.emptyList(); // Not connected
+            }
+    
+            // Determine start node for Eulerian path
+            Integer startNode = adj.keySet().iterator().next();
+            for (Map.Entry<Integer, Integer> entry : degrees.entrySet()) {
+                if (entry.getValue() % 2 != 0) { // Start with an odd-degree node if any
+                    startNode = entry.getKey();
+                    break;
+                }
+            }
+    
+            // Find Eulerian path using Hierholzer's algorithm
+            Stack<Integer> stack = new Stack<>();
+            List<Integer> path = new ArrayList<>();
+            stack.push(startNode);
+    
+            while (!stack.isEmpty()) {
+                Integer node = stack.peek();
+                if (adj.get(node).isEmpty()) {
+                    path.add(stack.pop());
+                } else {
+                    Integer nextNode = adj.get(node).get(0);
+                    stack.push(nextNode);
+                    adj.get(node).remove(nextNode);
+                    adj.get(nextNode).remove(node);
+                }
+            }
+    
+            Collections.reverse(path); // Ensure the correct order
+            
+            // Convert path of nodes to a list of elements
+            List<Element> result = new ArrayList<>();
+            for (int i = 0; i < path.size() - 1; i++) {
+                result.add(new Element(path.get(i), path.get(i + 1)));
+            }
+    
+            return result;
+        }
+    
+        private static boolean isConnected(Map<Integer, List<Integer>> adj) {
+            Set<Integer> visited = new HashSet<>();
+            Queue<Integer> queue = new LinkedList<>();
+            queue.add(adj.keySet().iterator().next());
+    
+            while (!queue.isEmpty()) {
+                Integer node = queue.poll();
+                if (!visited.contains(node)) {
+                    visited.add(node);
+                    for (Integer neighbor : adj.get(node)) {
+                        if (!visited.contains(neighbor)) {
+                            queue.add(neighbor);
+                        }
+                    }
+                }
+            }
+            return visited.size() == adj.size(); // All nodes are visited
+        }
+
         // Implementación de Floyd-Warshall para encontrar todos los caminos más cortos
         public void floydWarshall(List<Element> elements) {
-            List<Element> nodes = new ArrayList<>(elements);
+            
+            int [][] dp = new int[reverseMap.size()][reverseMap.size()];
 
-            for (Element k : nodes) {
-                for (Element i : nodes) {
-                    for (Element j : nodes) {
-                        Pair<Element, Element> ij = new Pair<>(i, j);
-                        Pair<Element, Element> ik = new Pair<>(i, k);
-                        Pair<Element, Element> kj = new Pair<>(k, j);
+            for (int i = 0; i < this.lpts.length; i++) {
+                for (int j = 0; j < this.lpts.length; j++) {
+                    dp[i][j] = this.lpts[i][j];
+                }
+            }
+            //TODO quitar esto y hacerlo sobre la matriz original
 
-                        if (distances.get(ik) != null && distances.get(kj) != null) {
-                            int newDist = distances.get(ik) + distances.get(kj);
-                            if (newDist < distances.get(ij)) {
-                                distances.put(ij, newDist);
-                            }
+            for (int k; k < this.lpts.length; k++) {
+                for (int i; i< this.lpts.length; i++) {
+                    for (int j; j < this.lpts.length; j++) {
+
+                        if (dp[i][k] + dp[k][j] < dp[i][j] && dist[k][j] != Integer.MAX_VALUE && dist[i][k] != Integer.MAX_VALUE) {
+                            dp[i][j] = dp[i][k] + dp[k][j];
                         }
                     }
                 }
             }
         }
+
+        public Map<Pair<Integer, Integer>, List<Integer>> floydMap(List<Element> elements) {
+            int[][] dp = new int[reverseMap.size()][reverseMap.size()];
+            int[][] next = new int[reverseMap.size()][reverseMap.size()];
+        
+            for (int i = 0; i < this.lpts.length; i++) {
+                for (int j = 0; j < this.lpts.length; j++) {
+                    dp[i][j] = this.lpts[i][j];
+                    if (i == j)
+                        next[i][j] = i;
+                    else if (dp[i][j] != Integer.MAX_VALUE)
+                        next[i][j] = i;
+                    else
+                        next[i][j] = -1;
+                }
+            }
+        
+            for (int k = 0; k < this.lpts.length; k++) {
+                for (int i = 0; i < this.lpts.length; i++) {
+                    for (int j = 0; j < this.lpts.length; j++) {
+                        if (dp[i][k] + dp[k][j] < dp[i][j] && dp[i][k] != Integer.MAX_VALUE && dp[k][j] != Integer.MAX_VALUE) {
+                            dp[i][j] = dp[i][k] + dp[k][j];
+                            next[i][j] = next[k][j];
+                        }
+                    }
+                }
+            }
+        
+            Map<Pair<Integer, Integer>, List<Integer>> shortestPaths = new HashMap<>();
+            for (int i = 0; i < this.lpts.length; i++) {
+                for (int j = 0; j < this.lpts.length; j++) {
+                    if (i != j) {
+                        List<Integer> path = new ArrayList<>();
+                        if (next[i][j] != -1) {
+                            path.add(i);
+                            while (i != j) {
+                                i = next[i][j];
+                                path.add(i);
+                            }
+                        }
+                        shortestPaths.put(new Pair<>(i, j), path);
+                    }
+                }
+            }
+        
+            return shortestPaths;
+        }
+        
     }
-}
